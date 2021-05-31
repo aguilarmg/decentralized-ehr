@@ -3,6 +3,28 @@ pragma solidity ^0.7.3;
 import "./ElectronicHealthRecordFactory.sol";
 
 contract ElectronicHealthRecordUpdate is ElectronicHealthRecordFactory {
+    /// @notice Recovers the address for an ECDSA signature and message hash, and requires the
+    ///         recovered address matches the address indicated by _patient.
+    /// @dev Starter code from following sources:
+    ///      https://medium.com/mycrypto/the-magic-of-digital-signatures-on-ethereum-98fe184dc9c7
+    modifier verifySignature(
+        address _patient,
+        bytes32 hash,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, hash));
+
+        require(
+            _patient == ecrecover(prefixedHash, v, r, s),
+            "This signature is not valid from \
+                this address."
+        );
+        _;
+    }
+
     /// @notice Allows users to update the height on EHR.
     /// @param _patientId ID of the patient.
     /// @param _height The new height which the EHR will be updated with.
